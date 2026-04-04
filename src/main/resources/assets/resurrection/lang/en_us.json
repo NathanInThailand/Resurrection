@@ -1,0 +1,7 @@
+{
+  "itemGroup.resurrection": "Example Mod Tab",
+  "block.resurrection.example_block": "Example Block",
+  "item.resurrection.example_item": "Example Item",
+  "enchantment.resurrection.resurrection": "Resurrection",
+  "message.resurrection.resurrected": "★ %s WAS RESURRECTED ★"
+}
