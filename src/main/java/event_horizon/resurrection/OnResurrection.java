@@ -28,7 +28,6 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 @EventBusSubscriber(modid = "resurrection")
 public class OnResurrection {
 
-    // --- PACKET REGISTRATION ---
     @SubscribeEvent
     public static void register(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
@@ -37,7 +36,6 @@ public class OnResurrection {
                 S2CResurrectionAnimationPacket.STREAM_CODEC,
                 (payload, context) -> {
                     context.enqueueWork(() -> {
-                        // This is the actual magic that renders the floating item
                         Minecraft.getInstance().gameRenderer.displayItemActivation(payload.stack());
                     });
                 }
@@ -51,13 +49,9 @@ public class OnResurrection {
         player.displayClientMessage(message, true);
     }
 
-    private static void triggerResurrectionEffects(Player player, ItemStack rescuedItem, Level level) {
+    private static void triggerResurrectionEffects(Player player, ItemStack displayItem, Level level) {
         if (!(player instanceof ServerPlayer serverPlayer)) return;
 
-        // Use the custom packet instead of broadcasting the vanilla event 35
-        PacketDistributor.sendToPlayer(serverPlayer, new S2CResurrectionAnimationPacket(rescuedItem));
-
-        // Soul sand particles
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.SOUL_FIRE_FLAME, player.getX(), player.getY(), player.getZ(), 150, 0.3, 0.8, 0.3, 0.05);
             serverLevel.sendParticles(ParticleTypes.SOUL, player.getX(), player.getY() + 0.5, player.getZ(), 80, 0.8, 0.5, 0.8, 0.02);
@@ -66,7 +60,12 @@ public class OnResurrection {
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
                 SoundEvents.TOTEM_USE, SoundSource.PLAYERS, 2.0f, 1.0f);
 
-        sendResurrectionMessage(player, rescuedItem);
+        sendResurrectionMessage(player, displayItem);
+
+        // Take a snapshot immediately and send without deferral —
+        // the item is correct at this point and execute() was zeroing it out
+        final ItemStack animationSnapshot = displayItem.copy();
+        PacketDistributor.sendToPlayer(serverPlayer, new S2CResurrectionAnimationPacket(animationSnapshot));
     }
 
     @SubscribeEvent
@@ -76,7 +75,8 @@ public class OnResurrection {
         Level level = player.level();
 
         var registry = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        var resurrectionKey = ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath("resurrection", "resurrection"));
+        var resurrectionKey = ResourceKey.create(Registries.ENCHANTMENT,
+                ResourceLocation.fromNamespaceAndPath("resurrection", "resurrection"));
         var resurrectionEnchant = registry.getOrThrow(resurrectionKey);
         int currentLevel = original.getEnchantmentLevel(resurrectionEnchant);
 
@@ -100,7 +100,9 @@ public class OnResurrection {
             int rescueDamage = (int) (rescuedItem.getMaxDamage() * (1.0 - remainingDurability));
             rescuedItem.setDamageValue(rescueDamage);
 
-            triggerResurrectionEffects(player, rescuedItem, level);
+            // Trigger effects before inventory add, using original for the
+            // display name and animation — it's still valid at this point
+            triggerResurrectionEffects(player, original, level);
 
             if (!player.getInventory().add(rescuedItem)) {
                 player.drop(rescuedItem, false);
@@ -114,10 +116,14 @@ public class OnResurrection {
 
         Level level = player.level();
         var registry = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        var resurrectionKey = ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath("resurrection", "resurrection"));
+        var resurrectionKey = ResourceKey.create(Registries.ENCHANTMENT,
+                ResourceLocation.fromNamespaceAndPath("resurrection", "resurrection"));
         var resurrectionEnchant = registry.getOrThrow(resurrectionKey);
 
-        for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+        for (EquipmentSlot slot : new EquipmentSlot[]{
+                EquipmentSlot.HEAD, EquipmentSlot.CHEST,
+                EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
+
             ItemStack armor = event.getArmorItemStack(slot);
             if (armor.isEmpty()) continue;
 
@@ -128,6 +134,7 @@ public class OnResurrection {
             if (armor.getDamageValue() + (int) newDamage < armor.getMaxDamage()) continue;
 
             event.setNewDamage(slot, 0f);
+
             ItemStack rescuedItem = armor.copy();
             ItemEnchantments enchants = rescuedItem.get(DataComponents.ENCHANTMENTS);
 
@@ -138,14 +145,17 @@ public class OnResurrection {
             }
 
             double remainingDurability = switch (currentLevel) {
-                case 1 -> 0.05; case 2 -> 0.10; case 3 -> 0.15; default -> 0.05;
+                case 1 -> 0.05;
+                case 2 -> 0.10;
+                case 3 -> 0.15;
+                default -> 0.05;
             };
 
             int rescueDamage = (int) (rescuedItem.getMaxDamage() * (1.0 - remainingDurability));
             rescuedItem.setDamageValue(rescueDamage);
 
-            triggerResurrectionEffects(player, rescuedItem, level);
             player.setItemSlot(slot, rescuedItem);
+            triggerResurrectionEffects(player, rescuedItem, level);
         }
     }
 }
