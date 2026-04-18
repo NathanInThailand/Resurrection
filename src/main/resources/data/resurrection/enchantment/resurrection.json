@@ -2,10 +2,10 @@
   "description": {
     "translate": "enchantment.resurrection.resurrection"
   },
-  "supported_items": "#resurrection:enchantable/resurrection",
-  "primary_items": "#resurrection:enchantable/resurrection",
+  "supported_items": "#resurrection:resurrectable",
+  "primary_items": "#resurrection:resurrectable",
   "weight": 1,
-  "max_level": 3,
+  "max_level": 5,
   "min_cost": {
     "base": 30,
     "per_level_above_first": 15
@@ -15,5 +15,12 @@
     "per_level_above_first": 15
   },
   "anvil_cost": 8,
-  "slots": ["any"]
+  "slots": [
+    "mainhand",
+    "offhand",
+    "head",
+    "chest",
+    "legs",
+    "feet"
+  ]
 }

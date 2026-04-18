@@ -84,6 +84,7 @@ public class Resurrection {
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
+
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
         LOGGER.info("HELLO FROM COMMON SETUP");
@@ -99,6 +100,7 @@ public class Resurrection {
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) event.accept(EXAMPLE_BLOCK_ITEM);
     }
+
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent

@@ -43,10 +43,10 @@ public class OnResurrection {
     }
 
     private static void sendResurrectionMessage(Player player, ItemStack item) {
-        Component itemName = item.getHoverName();
-        Component message = Component.translatable("message.resurrection.resurrected", itemName)
-                .withStyle(style -> style.withColor(TextColor.fromRgb(0xFFD700)).withBold(true));
-        player.displayClientMessage(message, true);
+//        Component itemName = item.getHoverName();
+//        Component message = Component.translatable("message.resurrection.resurrected", itemName)
+//                .withStyle(style -> style.withColor(TextColor.fromRgb(0xFFD700)).withBold(true));
+//        player.displayClientMessage(message, true);
     }
 
     private static void triggerResurrectionEffects(Player player, ItemStack displayItem, Level level) {

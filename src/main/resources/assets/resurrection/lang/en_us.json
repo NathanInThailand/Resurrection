@@ -3,5 +3,6 @@
   "block.resurrection.example_block": "Example Block",
   "item.resurrection.example_item": "Example Item",
   "enchantment.resurrection.resurrection": "Resurrection",
-  "message.resurrection.resurrected": "★ %s WAS RESURRECTED ★"
+  "message.resurrection.resurrected": "★ %s WAS RESURRECTED ★",
+  "enchantment.resurrection.resurrection.desc": "Saves a destroyed item from breaking. One enchant level is removed each time."
 }
