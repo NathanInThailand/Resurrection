@@ -1,5 +1,10 @@
 {
   "values": [
-    "minecraft:wooden_sword"
+    "#minecraft:enchantable/armor",
+    "#minecraft:enchantable/weapon",
+    "#minecraft:enchantable/mining",
+    "#minecraft:enchantable/bow",
+    "#minecraft:enchantable/crossbow",
+    "#minecraft:enchantable/shield"
   ]
 }
